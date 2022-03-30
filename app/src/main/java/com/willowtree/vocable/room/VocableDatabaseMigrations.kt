@@ -126,6 +126,15 @@ object VocableDatabaseMigrations {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE CategoryPhraseCrossRef ADD COLUMN timestamp INTEGER")
         }
+    }
 
+    val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE Phrase ADD COLUMN parent_category_id TEXT")
+            database.execSQL("CREATE TABLE Phrase_New (phrase_id INTEGER NOT NULL,parent_category_id TEXT, creation_date INTEGER NOT NULL, is_user_generated INTEGER NOT NULL, last_spoken_date INTEGER NOT NULL, resource_id INTEGER, localized_utterance TEXT, sort_order INTEGER NOT NULL, PRIMARY KEY(phrase_id))")
+            database.execSQL("INSERT INTO Phrase_New (parent_category_id, creation_date, is_user_generated, last_spoken_date, resource_id, localized_utterance, sort_order) SELECT parent_category_id, creation_date, is_user_generated, last_spoken_date, resource_id, localized_utterance, sort_order FROM phrase")
+            database.execSQL("DROP TABLE Phrase")
+            database.execSQL("ALTER TABLE Phrase_New RENAME TO Phrase")
+        }
     }
 }
